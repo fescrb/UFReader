@@ -12,4 +12,7 @@ class UFController():
     if subscription_view != None:
       subscription_view.update(subscription.content_list)
     
-    
+  def select_content(self, content_item, content_view):
+    self.current_content = content_item
+    if content_item != None:
+      content_view.set_text(content_item.text)

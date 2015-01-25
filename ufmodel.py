@@ -16,9 +16,9 @@ class UFContentItem():
     self.label = data['title']
     self.id = data['id']
     if "content" in data.keys():
-      self.text = data['content']
+      self.text = data['content']['content']
     else:
-      self.text = data['summary']
+      self.text = data['summary']['content']
     
   def mark_read(self):
     ufclient.mark_article_read(ufclient.token, self.id)
