@@ -16,10 +16,10 @@ class UFContentListView(Gtk.TreeView):
     select.connect("changed", self.on_selection_changed)
     
   def update(self, contentList):
-    for it in range(0, len(self.contentstore)):
-      self.contentstore.pop()
+    self.contentstore.clear()
     for content_item in contentList:
       self.contentstore.append([content_item.label, content_item])
+    self.queue_draw()
     
     
     

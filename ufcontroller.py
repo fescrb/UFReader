@@ -3,7 +3,7 @@ import ufmodel
 class UFController():
   def __init__(self,model):
     self.model = model
-    self.select_subscription(model.subscriptions[0], None)
+    #self.select_subscription(model.subscriptions[0], None)
     
     
   def select_subscription(self, subscription, subscription_view):
