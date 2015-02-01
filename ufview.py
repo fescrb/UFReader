@@ -77,8 +77,10 @@ class UFReaderWindow(gtk.Window):
     scroller_for_content_view = gtk.ScrolledWindow()
     scroller_for_content_view.add(self.content_view)
     scroller_for_content_list_view = gtk.ScrolledWindow()
+    scroller_for_content_list_view.set_size_request(-1,200)	
     scroller_for_content_list_view.add(self.content_list_view)
     scroller_for_subscription_view = gtk.ScrolledWindow()
+    scroller_for_subscription_view.set_size_request(100,-1)
     scroller_for_subscription_view.add(self.subcription_view)
     
     
