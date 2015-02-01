@@ -5,13 +5,15 @@ Documentation, License etc.
 '''
 
 import ufmodel
+import ufconfig
 import ufcontroller
 import ufview
 
 def main():
   model = ufmodel.UFModel()
-  controller = ufcontroller.UFController(model)
-  main_win = ufview.UFReaderWindow(model, controller)
+  config = ufconfig.UFConfig()
+  controller = ufcontroller.UFController(model, config)
+  main_win = ufview.UFReaderWindow(model, config, controller)
   main_win.show_all()
   ufview.run()
 

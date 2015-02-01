@@ -15,6 +15,7 @@ class UFContentItem():
     #print "Content: " + data['content']['content']
     self.label = data['title']
     self.id = data['id']
+    self.unread = True
     if "content" in data.keys():
       self.text = data['content']['content']
     else:
@@ -22,6 +23,7 @@ class UFContentItem():
     
   def mark_read(self):
     ufclient.mark_article_read(ufclient.token, self.id)
+    self.unread = False
 
 class UFSubscription():
   def __init__(self, data):

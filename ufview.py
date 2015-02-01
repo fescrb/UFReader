@@ -4,6 +4,13 @@ import webkit
 
 import ufmodel
 
+# Magic numbers, sorry
+def get_bold_value(unread):
+  if unread:
+    return 700 # BOLD
+  else:
+    return 400 # NOT BOLD
+
 class UFContentView(webkit.WebView):
   def __init__(self):
       webkit.WebView.__init__(self)
@@ -15,29 +22,36 @@ class UFContentListView(gtk.TreeView):
   def __init__(self, content_view, controller):
     self.content_view = content_view
     self.controller = controller
-    self.contentstore = gtk.ListStore(str, gobject.TYPE_PYOBJECT)
+    # Column 1 has the title, column 2 has a reference to the model object, column 3 has the text weight (bold/notbold)
+    self.contentstore = gtk.ListStore(str, gobject.TYPE_PYOBJECT, int)
     gtk.TreeView.__init__(self,self.contentstore)
-    self.renderer = gtk.CellRendererText()
-    self.column = gtk.TreeViewColumn("Articles", self.renderer, text=0)
-    self.append_column(self.column)
+    renderer = gtk.CellRendererText()
+    #renderer.set_property("weight", 700)
+    title_column = gtk.TreeViewColumn("Articles", renderer, text=0)
+    title_column.add_attribute(renderer, "weight", 2)
+    self.append_column(title_column)
     select = self.get_selection()
     select.connect("changed", self.on_selection_changed)
+    self.prev_selection = None
     
   def update(self, contentList):
     self.contentstore.clear()
     for content_item in contentList:
-      self.contentstore.append([content_item.label, content_item])
+      self.contentstore.append([content_item.label, content_item], get_bold_value(content_item.unread))
     self.queue_draw()
     
-    
-    
   def on_selection_changed(self, selection):
-    mod, iter = selection.get_selected()
+    store, iter = selection.get_selected()
     if iter != None:
-      print mod[iter][0] + " selected. Content id " + mod[iter][1].id
-      self.controller.select_content(content_item=mod[iter][1], content_view=self.content_view)
+      print store[iter][0] + " selected. Content id " + store[iter][1].id
+      self.controller.select_content(content_item=store[iter][1], content_view=self.content_view)
     else:
       print "Iter is none."
+    # I'd like this to be done by the controller
+    if self.prev_selection != None:
+      store[self.prev_selection][2] = get_bold_value(store[self.prev_selection][1].unread)
+    store[iter][2] = get_bold_value(store[iter][1].unread)
+    self.prev_selection = iter
 
 class UFSubscriptionListView(gtk.TreeView):
   def __init__(self, subscriptions, content_list_view, controller):
@@ -62,7 +76,7 @@ class UFSubscriptionListView(gtk.TreeView):
       print "Iter is none."
 
 class UFReaderWindow(gtk.Window):
-  def __init__(self, model, controller):
+  def __init__(self, model, config, controller):
     #Initialize self
     gtk.Window.__init__(self)
     self.set_title("UFReader")
