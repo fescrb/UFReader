@@ -22,5 +22,8 @@ class UFController():
     self.current_content = content_item
     if content_item != None:
       if self.config.get_mark_read_on_open():
-	self.current_content.mark_read()
+        self.current_content.mark_read()
       content_view.set_text(content_item.text)
+      
+  def shutdown(self):
+    self.config.save_config()

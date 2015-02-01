@@ -9,7 +9,7 @@ class UFConfig(dict) :
     # init defaults?
     if not os.path.isfile(config_file_location):
       if not os.path.isdir(config_file_directory):
-	os.makedirs(config_file_directory)
+        os.makedirs(config_file_directory)
       self.set_defaults()
       config_file = open(config_file_location, "w+")
       self.write_to_file(config_file)
@@ -30,6 +30,10 @@ class UFConfig(dict) :
       
   def write_to_file(self, f):
     json.dump(self, f, indent = 4)
+    
+  def save_config(self):
+    config_file = open(config_file_location, "w+")
+    self.write_to_file(config_file)
     
   # Getters
   def get_mark_read_on_open(self):
