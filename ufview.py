@@ -15,16 +15,22 @@ def get_bold_value(unread):
     return Pango.Weight.NORMAL # NOT BOLD
 
 class UFContentView(WebKit.WebView):
-  def __init__(self):
+  def __init__(self, controller):
       WebKit.WebView.__init__(self)
+      self.controller = controller
       
   def set_text(self, text):
     self.load_html_string(text, "")
+    
+  def update(self):
+    if self.controller.current_content != None: 
+      self.set_text(text=self.controller.current_content.text)
 
 class UFContentListView(Gtk.TreeView):
   def __init__(self, content_view, controller):
     self.content_view = content_view
     self.controller = controller
+    self.current_content_list = None
     # Column 1 has the title, column 2 has a reference to the model object, column 3 has the text weight (bold/notbold)
     self.contentstore = Gtk.ListStore(str, GObject.TYPE_PYOBJECT, int)
     Gtk.TreeView.__init__(self,self.contentstore)
@@ -34,27 +40,41 @@ class UFContentListView(Gtk.TreeView):
     title_column.add_attribute(renderer, "weight", 2)
     self.append_column(title_column)
     select = self.get_selection()
+    #select.set_mode(Gtk.SELECTION_SINGLE)
     select.connect("changed", self.on_selection_changed)
     self.prev_selection = None
     
-  def update(self, contentList):
-    self.contentstore.clear()
-    for content_item in contentList:
-      self.contentstore.append([content_item.label, content_item, get_bold_value(content_item.unread)])
-    self.queue_draw()
+  def set_content_list(self, content_list):
+    if content_list != self.current_content_list:
+      self.get_selection().unselect_all()
+      self.contentstore.clear()
+      for content_item in content_list:
+        self.contentstore.append([content_item.label, content_item, get_bold_value(content_item.unread)])
+      self.queue_draw()
+      self.current_content_list = content_list
+    
+  def update_read(self):
+    for content_item in self.contentstore:
+      content_item[2] = get_bold_value(content_item[1].unread)
+      
+  def update(self):
+    self.update_read()
+    self.set_content_list(self.controller.current_subscription.content_list)
+    self.content_view.update()
     
   def on_selection_changed(self, selection):
     store, iter = selection.get_selected()
     if iter != None:
       print(store[iter][0] + " selected. Content id " + store[iter][1].id)
-      self.controller.select_content(content_item=store[iter][1], content_view=self.content_view)
+      self.controller.select_content(content_item=store[iter][1])
     else:
-      print("Iter is none.")
+      print("UFContentListView iter is none.")
+    self.update_read()
     # I'd like this to be done by the controller
-    if self.prev_selection != None:
-      store[self.prev_selection][2] = get_bold_value(store[self.prev_selection][1].unread)
-    store[iter][2] = get_bold_value(store[iter][1].unread)
-    self.prev_selection = iter
+    #if self.prev_selection != None:
+    #  store[self.prev_selection][2] = get_bold_value(store[self.prev_selection][1].unread)
+    #store[iter][2] = get_bold_value(store[iter][1].unread)
+    #self.prev_selection = iter
 
 class UFSubscriptionListView(Gtk.TreeView):
   def __init__(self, subscriptions, content_list_view, controller):
@@ -74,9 +94,12 @@ class UFSubscriptionListView(Gtk.TreeView):
     mod, iter = selection.get_selected()
     if iter != None:
       print(mod[iter][0] + " selected. Sub id " + mod[iter][1].id)
-      self.controller.select_subscription(mod[iter][1], self.content_list_view)
+      self.controller.select_subscription(mod[iter][1])
     else:
-      print("Iter is none.")
+      print("UFSubscriptionListView iter is none.")
+      
+  def update(self):
+    self.content_list_view.update()
       
 class UFOptionsWindow(Gtk.Window):
   def __init__(self, controller):
@@ -129,7 +152,7 @@ class UFReaderWindow(Gtk.Window):
     self.set_default_size(width=600,height=400)
     
     #Initialize sub-widgets
-    self.content_view = UFContentView()
+    self.content_view = UFContentView(controller)
     self.content_list_view = UFContentListView(self.content_view, controller)
     self.subcription_view = UFSubscriptionListView(model.subscriptions,self.content_list_view, controller)
     
@@ -158,8 +181,14 @@ class UFReaderWindow(Gtk.Window):
     self.add(top_box)
     self.connect("delete-event", self.shutdown)
     
+    self.controller.set_updatable(self)
+    
+  # Propagate update chain
+  def update(self):
+    self.subcription_view.update()
+    
   def shutdown(self, event, data):
-    self.controller.shutdown()
+    self.controller.save_config()
     Gtk.main_quit()
       
 def run():

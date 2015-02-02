@@ -7,23 +7,33 @@ class UFController():
     self.config = config
     self.current_subscription = None
     self.current_content = None
+    self.updatable = None
+    self.content_list_view = None
     #self.select_subscription(model.subscriptions[0], None)
     
+  def set_updatable(self, updatable):
+    self.updatable = updatable
     
-  def select_subscription(self, subscription, subscription_view):
+  def set_content_list_view(self, content_list_view):
+    self.content_list_view = content_list_view
+    
+  def select_subscription(self, subscription):
     subscription.load_content()
     self.current_subscription = subscription
-    if subscription_view != None:
-      subscription_view.update(subscription.content_list)
+    self.updatable.update()
     
-  def select_content(self, content_item, content_view):
+  def select_content(self, content_item):
     if self.config.get_mark_read_on_close() and self.current_content != None:
-      self.current_content.mark_read()
+      self.mark_current_read()
     self.current_content = content_item
     if content_item != None:
       if self.config.get_mark_read_on_open():
-        self.current_content.mark_read()
-      content_view.set_text(content_item.text)
+        self.mark_current_read()
+    self.updatable.update()
       
-  def shutdown(self):
+  def mark_current_read(self):
+    if self.current_content != None:
+      self.current_content.mark_read()
+      
+  def save_config(self):
     self.config.save_config()

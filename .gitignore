@@ -1,5 +1,12 @@
+# Kdevelop4 Files
 ./kdev4*
 *.kdev4
+
+# Python Compilation Files
 *.pyc
+
+# Json data files, these are temporary
 *.json
+
+# Other Repo
 feedly_client
